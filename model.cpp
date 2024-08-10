@@ -1,5 +1,5 @@
 /*
-    ggml-transformer/src/main.cpp
+    model.cpp
 */
 
 #include "ggml.h"
