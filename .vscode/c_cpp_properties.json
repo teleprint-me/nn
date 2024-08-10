@@ -5,11 +5,10 @@
       "includePath": [
         "/usr/include",
         "/usr/local/include",
-        "${workspaceFolder}/imgui",
-        "${workspaceFolder}/imgui/backends",
-        "${workspaceFolder}/implot",
-        "${workspaceFolder}/include",
-        "${workspaceFolder}/source"
+        "${workspaceFolder}/ggml/ggml/include",
+        "${workspaceFolder}/ggml/ggml/src",
+        "${workspaceFolder}/ggml/include",
+        "${workspaceFolder}"
       ],
       "defines": [],
       "cStandard": "c17",

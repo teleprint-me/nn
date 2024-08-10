@@ -13,7 +13,8 @@ target_link_libraries(nn PUBLIC ggml)
 # Specify include directories for this specific target
 target_include_directories(nn PUBLIC 
     ${PROJECT_SOURCE_DIR}/ggml/include
-    ${PROJECT_SOURCE_DIR}/ggml/include/ggml
+    ${PROJECT_SOURCE_DIR}/ggml/ggml/include
+    ${PROJECT_SOURCE_DIR}/ggml/ggml/src
     ${PROJECT_SOURCE_DIR}
 )
 
