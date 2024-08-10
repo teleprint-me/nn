@@ -26,7 +26,7 @@ The purpose of this document is to provide an in-depth explanation of the `model
 
 The `model.cpp` file is structured as follows:
 
-### 1. Include Statements
+### 2.1. Include Statements
 
 The file begins with include statements to import required header files, including `ggml.h`, which provides all necessary definitions and declarations for the GGML Tensor Library.
 
@@ -35,7 +35,7 @@ The file begins with include statements to import required header files, includi
 // Other required headers
 ```
 
-### 2. Main Function Declaration
+### 2.2. Main Function Declaration
 
 The `int main()` function serves as the entry point of the program. It encapsulates the initialization of the GGML context, tensor creation, matrix operations, and resource management.
 
@@ -50,7 +50,7 @@ int main() {
 }
 ```
 
-### 3. Helper Function Implementation
+### 2.3. Helper Function Implementation
 
 The file also contains implementations of helper functions, such as `verify_tensor_creation()`, which checks if a tensor was successfully created and ensures proper error handling.
 
@@ -60,7 +60,7 @@ void verify_tensor_creation(struct ggml_context* ctx, struct ggml_tensor* tensor
 }
 ```
 
-### 4. Main Function Implementation
+### 2.4. Main Function Implementation
 
 The core functionality resides within the `main` function. It initializes the GGML context with a predefined memory size, creates tensors, performs matrix operations, and handles resource cleanup. This is where the primary logic of the program is executed.
 
@@ -68,16 +68,16 @@ The core functionality resides within the `main` function. It initializes the GG
 
 To compile and execute `model.cpp`, several dependencies must be met:
 
-### 1. **GGML Tensor Library**
+### 3.1. **GGML Tensor Library**
 
 Ensure the GGML Tensor Library is properly installed and configured. The library provides the necessary functions and data structures used in the code.
 
-### 2. **CMake Configuration**
+### 3.2. **CMake Configuration**
 
 You will need a CMake environment (version 3.14 or higher) to build the project. The provided `CMakeLists.txt` file should include:
 
 - Adding the GGML submodule directory using `add_subdirectory()`.
-- Linking the GGML library to your target executable (`nn`).
+- Linking the GGML library to your target executable (`model`).
 - Specifying include directories for the target.
 
 Example `CMakeLists.txt` snippet:
@@ -87,12 +87,12 @@ cmake_minimum_required(VERSION 3.14)
 project(ggml_example)
 
 add_subdirectory(ggml)
-add_executable(nn model.cpp)
-target_link_libraries(nn PUBLIC ggml)
-target_include_directories(nn PUBLIC ${PROJECT_SOURCE_DIR}/ggml/include)
+add_executable(model model.cpp)
+target_link_libraries(model PUBLIC ggml)
+target_include_directories(model PUBLIC ${PROJECT_SOURCE_DIR}/ggml/include)
 ```
 
-### 3. **Hardware Dependencies and Backends**
+### 3.3. **Hardware Dependencies and Backends**
 
 The GGML library supports multiple backends. The default is CPU, but it can also target GPUs via CUDA, ROCm, Metal, Vulkan, and Kompute. The appropriate drivers and dependencies must be installed separately.
 
@@ -106,24 +106,62 @@ cmake -B build \
     -DGGML_CCACHE=0
 ```
 
-Note that we disable the compilers cache to mitigate subtle issues during the development process.
+Note that we disable the compilers cache to mitigate subtle issues during the development process. Compilation will be slower, however, this will ensure any changes are included in the most recent build.
 
 ## **4. Initializing the GGML Context**
 
-This section describes how to initialize the GGML context, which includes allocating memory for tensors and ensuring that initialization succeeds.
+The GGML context is initialized with a predefined memory size, which allocates the necessary resources for tensor operations. Failure to initialize the context results in an error message and the program's termination.
+
+```cpp
+struct ggml_init_params params = {
+    .mem_size   = 16 * 1024 * 1024, // 16 MB
+    .mem_buffer = NULL,             // Let ggml manage the memory allocation
+};
+
+struct ggml_context* ctx = ggml_init(params);
+if (!ctx) {
+    fprintf(stderr, "Failed to initialize ggml context\n");
+    return 1;
+}
+```
 
 ## **5. Creating Tensors with Half-Precision Data (F16)**
 
-Here, we explain how to create 2D tensors with specified dimensions using half-precision floating point data (F16). This involves specifying the tensor dimensions and data type within the GGML context.
+The file creates 2D tensors using half-precision floating point data (F16). Tensors are allocated with specific dimensions, and the `verify_tensor_creation()` function ensures they are successfully created.
 
-## **6. Matrix Multiplication Operations**
+```cpp
+int64_t rows = 4;
+int64_t cols = 4;
 
-This section covers performing matrix multiplication with `ggml_mul` and tensor addition with `ggml_add`. These operations are essential for most machine learning tasks.
+struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
+verify_tensor_creation(ctx, a);
+
+struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
+verify_tensor_creation(ctx, b);
+```
+
+## **6. Matrix Multiplication and Addition Operations**
+
+Matrix multiplication is performed using `ggml_mul()`, and the results are further processed with addition operations using `ggml_add()`. These operations are central to many machine learning tasks.
+
+```cpp
+struct ggml_tensor* x = ggml_mul(ctx, a, b);
+
+struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
+```
 
 ## **7. Cleaning Up Resources**
 
-Proper resource management is crucial. This section details how to free the resources allocated for the GGML context and tensors to avoid memory leaks.
+After the tensor operations, the GGML context and associated resources are freed to avoid memory leaks. Proper resource management is crucial in maintaining efficient and reliable applications.
+
+```cpp
+ggml_free(ctx);
+```
 
 ## **8. Limitations and Future Work**
 
-While the example demonstrates core functionalities, it has limitations, such as the lack of error handling for certain edge cases and the absence of support for backward propagation. Future work could include enhancing error handling, adding support for additional backends, and implementing more complex machine learning models.
+This example serves as a basic introduction to GGML, but it lacks support for more advanced features like backward propagation. Future work could include:
+
+- Implementing backward passes for training models.
+- Enhancing error handling and validation.
+- Exploring other data types and more complex tensor operations.
