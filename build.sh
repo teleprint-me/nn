@@ -6,7 +6,11 @@ if [ -d "$build_dir" ]; then
   echo "Cleaning existing build directory..."
   rm -r "$build_dir" || exit 1
 fi
-cmake -B build -DCMAKE_BUILD_TYPE=Debug || exit 1
+cmake -B build \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DGGML_VULKAN=1 -DGGML_VULKAN_DEBUG=0 \
+    -DGGML_CCACHE=0 \
+    -DGGML_CURL=1 || exit 1
 
 # Run CMake and build the project
 if cmake --build build -j "$(nproc)"; then
