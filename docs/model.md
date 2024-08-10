@@ -13,13 +13,61 @@ This document provides a detailed explanation of the `model.cpp` file in the con
 7. **Cleaning Up Resources**
 8. **Limitations and Future Work**
 
-## **Overview**
+### Overview
 
-The `model.cpp` file is an example of a simple neural network implementation that uses the GGML Tensor Library for matrix multiplication operations on tensors with half-precision floating point data (F16).
+The purpose of this document is to provide an in-depth explanation of the `model.cpp` file within the context of the GGML Tensor Library, a minimalistic approach for machine learning tasks like linear regression and neural networks using automatic differentiation and optimization algorithms. The code in `model.cpp` demonstrates how to create tensors with half precision floating point data (F16), initialize the GGML context, perform matrix multiplication operations using ggml\_mul() and ggml\_add(), and manage resources efficiently.
 
-### **File Structure**
+### File Structure
 
-This section describes the layout and organization of the source code within `model.cpp`.
+The `model.cpp` file is organized into several sections:
+
+#### 1. Include statements
+
+At the beginning of the source code, you'll find include statements that import required header files for using specific libraries or functions, such as `ggml.h` which includes all necessary definitions and declarations related to the GGML Tensor Library.
+
+```cpp
+#include "ggml.h"
+
+// Other required headers
+
+// ...
+```
+
+#### 2. Function declaration
+
+Next comes the main function declaration, `int main()`. This is where the entry point of our program lies and where all initialization, tensor creation, matrix multiplication operations, resource management, and eventual termination takes place.
+
+```cpp
+int main() {
+    // Initialization code
+
+    // Tensor creation
+
+    // Matrix Multiplication Operations
+
+    // Resource Management
+
+    return 0;
+}
+```
+
+#### 3. Function implementation
+
+The majority of the `model.cpp` file consists of function implementations for helper functions like `verify_tensor_creation()`, which checks if a ggml tensor was successfully created during initialization, and ensures that proper error handling is in place when initializing the GGML context or creating tensors.
+
+```cpp
+void verify_tensor_creation(
+    struct ggml_context* ctx, struct ggml_tensor* tensor
+) {
+    // Error checking code
+}
+```
+
+#### 4. Main function implementation
+
+The main part of the `model.cpp` file is located within the main function's body where we initialize the GGML context with a predefined memory size, create tensors of specified dimensions using half-precision floating point data (F16), perform matrix multiplication operations and additions on those tensors, clean up resources when done, and handle any potential errors or exceptions that may occur during execution.
+
+With this overview in place, we can now dive deeper into each section for a more detailed explanation of the contents within `model.cpp`. Next, let's discuss the dependencies required to build, compile, or execute this example file effectively.
 
 ### **Dependencies**
 
