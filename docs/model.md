@@ -1,8 +1,8 @@
-# **GGML Model Implementation - `model.cpp`**
+# GGML Model Implementation - `model.cpp`
 
 This document provides a comprehensive explanation of the `model.cpp` file within the GGML Tensor Library, detailing tensor creation, matrix multiplication operations, and error handling. It builds upon a high-level introduction to the library to guide developers through the code and its functionalities.
 
-## **Table of Contents**
+## Table of Contents
 
 1. **Overview**
 2. **File Structure**
@@ -13,7 +13,7 @@ This document provides a comprehensive explanation of the `model.cpp` file withi
 7. **Cleaning Up Resources**
 8. **Limitations and Future Work**
 
-## **1. Overview**
+## 1. Overview
 
 The purpose of this document is to provide an in-depth explanation of the `model.cpp` file, which demonstrates the usage of the GGML Tensor Library. GGML is a minimalistic library designed for machine learning tasks such as linear regression and neural networks, supporting automatic differentiation and optimization algorithms. The code in `model.cpp` illustrates how to:
 
@@ -22,7 +22,7 @@ The purpose of this document is to provide an in-depth explanation of the `model
 - Perform matrix multiplication using `ggml_mul` and tensor addition with `ggml_add`.
 - Manage resources efficiently.
 
-## **2. File Structure**
+## 2. File Structure
 
 The `model.cpp` file is structured as follows:
 
@@ -64,7 +64,7 @@ void verify_tensor_creation(struct ggml_context* ctx, struct ggml_tensor* tensor
 
 The core functionality resides within the `main` function. It initializes the GGML context with a predefined memory size, creates tensors, performs matrix operations, and handles resource cleanup. This is where the primary logic of the program is executed.
 
-## **3. Dependencies**
+## 3. Dependencies
 
 To compile and execute `model.cpp`, several dependencies must be met:
 
@@ -108,7 +108,7 @@ cmake -B build \
 
 Note that we disable the compilers cache to mitigate subtle issues during the development process. Compilation will be slower, however, this will ensure any changes are included in the most recent build.
 
-## **4. Initializing the GGML Context**
+## 4. Initializing the GGML Context
 
 In the GGML Tensor Library, the context initialization is a critical process that sets up the memory management and execution environment for tensor operations. The initialization process involves the `ggml_init` function, which takes a `ggml_init_params` structure as its argument.
 
@@ -386,7 +386,7 @@ size_t used_mem = ggml_used_mem(ctx);
 
 This helps in adjusting the buffer size for future operations, ensuring that your computations remain within memory limits.
 
-## **6. Matrix Multiplication and Addition Operations**
+## 6. Matrix Multiplication and Addition Operations
 
 Matrix multiplication is performed using `ggml_mul()`, and the results are further processed with addition operations using `ggml_add()`. These operations are central to many machine learning tasks.
 
@@ -396,7 +396,7 @@ struct ggml_tensor* x = ggml_mul(ctx, a, b);
 struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
 ```
 
-## **7. Cleaning Up Resources**
+## 7. Cleaning Up Resources
 
 After the tensor operations, the GGML context and associated resources are freed to avoid memory leaks. Proper resource management is crucial in maintaining efficient and reliable applications.
 
@@ -404,7 +404,7 @@ After the tensor operations, the GGML context and associated resources are freed
 ggml_free(ctx);
 ```
 
-## **8. Limitations and Future Work**
+## 8. Limitations and Future Work
 
 This example serves as a basic introduction to GGML, but it lacks support for more advanced features like backward propagation. Future work could include:
 
