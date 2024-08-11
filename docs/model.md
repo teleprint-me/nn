@@ -68,11 +68,11 @@ The core functionality resides within the `main` function. It initializes the GG
 
 To compile and execute `model.cpp`, several dependencies must be met:
 
-### 3.1. **GGML Tensor Library**
+### 3.1. GGML Tensor Library
 
 Ensure the GGML Tensor Library is properly installed and configured. The library provides the necessary functions and data structures used in the code.
 
-### 3.2. **CMake Configuration**
+### 3.2. CMake Configuration
 
 You will need a CMake environment (version 3.14 or higher) to build the project. The provided `CMakeLists.txt` file should include:
 
@@ -92,7 +92,7 @@ target_link_libraries(model PUBLIC ggml)
 target_include_directories(model PUBLIC ${PROJECT_SOURCE_DIR}/ggml/include)
 ```
 
-### 3.3. **Hardware Dependencies and Backends**
+### 3.3. Hardware Dependencies and Backends
 
 The GGML library supports multiple backends. The default is CPU, but it can also target GPUs via CUDA, ROCm, Metal, Vulkan, and Kompute. The appropriate drivers and dependencies must be installed separately.
 
@@ -112,7 +112,7 @@ Note that we disable the compilers cache to mitigate subtle issues during the de
 
 In the GGML Tensor Library, the context initialization is a critical process that sets up the memory management and execution environment for tensor operations. The initialization process involves the `ggml_init` function, which takes a `ggml_init_params` structure as its argument.
 
-### **4.1. Understanding the ggml_context Structure**
+### 4.1. Understanding the ggml_context Structure
 
 The `ggml_context` structure is central to managing memory and tensor operations in GGML. It is defined as follows:
 
@@ -138,7 +138,7 @@ struct ggml_context {
 - **Tensor Management**: The `n_objects`, `objects_begin`, and `objects_end` fields manage the linked list of tensors created within the context.
 - **Scratch Buffers**: The `scratch` and `scratch_save` fields are used for managing temporary data during operations, allowing efficient memory reuse.
 
-### **4.2. The ggml_init Function**
+### 4.2. The ggml_init Function
 
 The `ggml_init` function is responsible for creating and initializing the GGML context. The function performs the following steps:
 
@@ -208,7 +208,7 @@ struct ggml_context * ggml_init(struct ggml_init_params params) {
 }
 ```
 
-### **4.3. Practical Application in model.cpp**
+### 4.3. Practical Application in model.cpp
 
 To apply this in practice, consider the following example from `model.cpp`:
 
@@ -249,7 +249,7 @@ In this example:
 
 Tensors are the fundamental data structures in GGML, used to represent multi-dimensional arrays. In GGML, tensors can have up to four dimensions, making them suitable for a wide range of applications, from simple scalar values to complex multi-dimensional arrays. 
 
-### 5.1 Tensor Types and Precision
+### 5.1. Tensor Types and Precision
 
 GGML supports several data types for tensors, with a primary focus on floating-point types. The most commonly used types are:
 
@@ -262,7 +262,7 @@ GGML supports several data types for tensors, with a primary focus on floating-p
 
 These types allow for flexible precision control, which is essential in scenarios where memory constraints or computation speed are critical. For most machine learning tasks, FP16 and FP32 are the preferred types due to their balance of precision and efficiency.
 
-### 5.2 Declaring Tensors
+### 5.2. Declaring Tensors
 
 To declare a tensor, you first need to define its dimensions and data type. GGML provides a variety of functions to create tensors with different dimensionalities, allowing flexibility depending on the specific requirements:
 
@@ -299,13 +299,13 @@ These examples demonstrate the versatility GGML offers for tensor creation, acco
 
 While the functions like `ggml_new_tensor_1d`, `ggml_new_tensor_2d`, etc., abstract away the complexity for specific cases, they ultimately rely on the more generalized `ggml_new_tensor` function. This layered abstraction might seem superfluous, especially when working directly with the underlying function can provide more control. However, the abstraction serves to simplify common tensor creation patterns, making code more declarative and potentially improving readability, depending on the context.
 
-### 5.3 Initializing Tensor Values
+### 5.3. Initializing Tensor Values
 
 Once a tensor has been declared, the next step is to initialize its values. GGML provides specific functions for this purpose, with the most commonly used being:
 
 - `ggml_set_f32(tensor, value)`: Sets all elements within the tensor to a specified float value.
 
-#### Understanding `ggml_set_f32`
+#### 5.3.1. Understanding `ggml_set_f32`
 
 This function is designed to uniformly set every element in a tensor to a given float value. While the function's name might suggest that similar functions exist for other data types, GGML currently offers only two such functions:
 
@@ -322,7 +322,7 @@ ggml_set_f32(a, 0); // uniformly zero-initialize the tensor
 
 This approach zeroes out the entire tensor, providing a simple, effective method of initialization without introducing unnecessary complexity.
 
-#### The `ggml_set_f32` Function in Detail
+#### 5.3.2. The `ggml_set_f32` Function in Detail
 
 The `ggml_set_f32` function is versatile and handles different tensor data types using a switch-case structure. When the tensor's data type is `GGML_TYPE_F32`, the following block of code is executed:
 
@@ -348,7 +348,7 @@ inline static void ggml_vec_set_f32(const int n, float * x, const float v) {
 
 This implementation iterates over all elements in the tensor, setting each to the specified value. The function is efficient and applies this operation uniformly across the entire tensor.
 
-#### Zero Initialization with `ggml_set_zero`
+#### 5.3.3. Zero Initialization with `ggml_set_zero`
 
 In addition to `ggml_set_f32` and `ggml_set_i32`, GGML also provides a `ggml_set_zero` function, which zeroes out all tensor elements. Unlike the previous two functions, `ggml_set_zero` does not offer the same level of data type handling, but it is still a straightforward and effective way to ensure that all tensor elements start from a known state:
 
@@ -358,11 +358,11 @@ ggml_set_zero(a); // zero-initialize the tensor
 
 While `ggml_set_f32` and `ggml_set_i32` are versatile and handle different data types, `ggml_set_zero` focuses solely on zero initialization. It can be a preferred option when the intention is simply to clear a tensor, regardless of its data type.
 
-#### Summary
+#### 5.3.4. Summary
 
 Zero initialization is often the most practical choice for tensor initialization, ensuring that all elements begin from a uniform, known state. Whether using `ggml_set_f32`, `ggml_set_i32`, or `ggml_set_zero`, the approach remains straightforward, effective, and easy to implement, making it a valuable tool in GGML tensor management.
 
-#### 5.4 Tensor Operations
+#### 5.4. Tensor Operations
 
 Once tensors are declared and initialized, you can perform various operations on them, such as addition, multiplication, and more complex functions like convolution. For instance:
 
@@ -374,7 +374,7 @@ struct ggml_tensor* x = ggml_mul(ctx, a, b);
 
 Here, `ggml_mul` performs element-wise multiplication of tensors `a` and `b`.
 
-#### 5.5 Optimizing and Managing Memory
+#### 5.5. Optimizing and Managing Memory
 
 GGML optimizes memory usage by allocating all required memory upfront in a buffer during the context initialization. When defining tensors and computation graphs, it's crucial to manage this memory efficiently to avoid exceeding the allocated buffer size.
 
