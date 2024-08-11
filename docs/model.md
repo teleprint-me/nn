@@ -301,21 +301,30 @@ While the functions like `ggml_new_tensor_1d`, `ggml_new_tensor_2d`, etc., abstr
 
 ### 5.3 Initializing Tensor Values
 
-After declaring a tensor, the next logical step is to initialize its values. GGML provides a function designed for this purpose:
+Once a tensor has been declared, the next step is to initialize its values. GGML provides specific functions for this purpose, with the most commonly used being:
 
-- `ggml_set_f32(tensor, value)`: Sets all elements in the tensor to the specified float value.
+- `ggml_set_f32(tensor, value)`: Sets all elements within the tensor to a specified float value.
 
-This function accepts an initialized tensor and a single value, setting every element in the tensor to this value. The name `ggml_set_f32` may be misleading, as it implies there could be other similar functions for different data types. However, GGML currently offers only two such functions—`ggml_set_f32` for floating-point tensors and `ggml_set_i32` for integer tensors, both performing essentially the same operation.
+#### Understanding `ggml_set_f32`
 
-For instance, if you wanted to zero-initialize a 2D tensor, the implementation could look like this:
+This function is designed to uniformly set every element in a tensor to a given float value. While the function's name might suggest that similar functions exist for other data types, GGML currently offers only two such functions:
+
+- `ggml_set_f32` for floating-point tensors
+- `ggml_set_i32` for integer tensors
+
+Both of these functions operate similarly, setting all elements in their respective tensors to a uniform value. The choice of function names might be misleading, as it could imply a broader set of functions for different data types. A more intuitive name, such as `ggml_set_tensor`, might have better conveyed the function's purpose, but the current naming convention does not detract from its effectiveness.
+
+Here's how you might zero-initialize a 2D tensor:
 
 ```cpp
 ggml_set_f32(a, 0); // uniformly zero-initialize the tensor
 ```
 
-This approach effectively zeroes out the entire tensor, providing a straightforward and efficient method to initialize the tensor's values without introducing unnecessary complexity.
+This approach zeroes out the entire tensor, providing a simple, effective method of initialization without introducing unnecessary complexity.
 
-The function itself uses a switch-case structure to handle different tensor data types. If the data type is `GGML_TYPE_F32`, for example, the following code snippet from `ggml_set_f32` is executed:
+#### The `ggml_set_f32` Function in Detail
+
+The `ggml_set_f32` function is versatile and handles different tensor data types using a switch-case structure. When the tensor's data type is `GGML_TYPE_F32`, the following block of code is executed:
 
 ```cpp
 case GGML_TYPE_F32:
@@ -327,9 +336,7 @@ case GGML_TYPE_F32:
 } break;
 ```
 
-Notice how the index is multipled by n1 and then added to data. i is the index (position in memory) and n1 is the size of the stride. This multiplies our position by the stride shifting us by each respective data element within the tensor. This is a valuable nuance to recognize.
-
-This block sets each element in the tensor to the specified value by calling the `ggml_vec_set_f32` function. The `ggml_vec_set_f32` function itself is straightforward:
+Here, the function ensures that the tensor's elements are correctly set by calling `ggml_vec_set_f32`. This helper function is quite straightforward:
 
 ```c
 inline static void ggml_vec_set_f32(const int n, float * x, const float v) {
@@ -339,17 +346,21 @@ inline static void ggml_vec_set_f32(const int n, float * x, const float v) {
 }
 ```
 
-Regardless of the tensor's data type, a similar pattern is followed, ensuring that each element is set uniformly. This design choice makes the `ggml_set_f32` function versatile but perhaps not as clearly named as it could be. A name like `ggml_set_tensor` might have been more intuitive, but the current implementation handles its task effectively.
+This implementation iterates over all elements in the tensor, setting each to the specified value. The function is efficient and applies this operation uniformly across the entire tensor.
 
-A more appropriate method to zero initialize a tensor would be to simply use the `ggml_set_zero` function which simply takes a tensor as an argument.
+#### Zero Initialization with `ggml_set_zero`
+
+In addition to `ggml_set_f32` and `ggml_set_i32`, GGML also provides a `ggml_set_zero` function, which zeroes out all tensor elements. Unlike the previous two functions, `ggml_set_zero` does not offer the same level of data type handling, but it is still a straightforward and effective way to ensure that all tensor elements start from a known state:
 
 ```c
-ggml_set_zero(a);
+ggml_set_zero(a); // zero-initialize the tensor
 ```
 
-In any case, `ggml_set_f32`, `ggml_set_i32`, and `ggml_set_zero` perform value assignment to the tensors elements. Something to note is that `ggml_set_zero` does not gracefully handle data types as the other two functions do.
+While `ggml_set_f32` and `ggml_set_i32` are versatile and handle different data types, `ggml_set_zero` focuses solely on zero initialization. It can be a preferred option when the intention is simply to clear a tensor, regardless of its data type.
 
-In summary, zero-initialization offers a simple yet effective way to ensure that all tensor elements start from a known state, making it a practical choice for many applications.
+#### Summary
+
+Zero initialization is often the most practical choice for tensor initialization, ensuring that all elements begin from a uniform, known state. Whether using `ggml_set_f32`, `ggml_set_i32`, or `ggml_set_zero`, the approach remains straightforward, effective, and easy to implement, making it a valuable tool in GGML tensor management.
 
 #### 5.4 Tensor Operations
 
