@@ -245,20 +245,141 @@ In this example:
 
 - The context is then used for tensor operations. After all operations are completed, the context is freed using `ggml_free` to ensure that all allocated resources are properly released.
 
-## **5. Creating Tensors with Half-Precision Data (F16)**
+## 5. Working with Tensors in GGML
 
-The file creates 2D tensors using half-precision floating point data (F16). Tensors are allocated with specific dimensions, and the `verify_tensor_creation()` function ensures they are successfully created.
+Tensors are the fundamental data structures in GGML, used to represent multi-dimensional arrays. In GGML, tensors can have up to four dimensions, making them suitable for a wide range of applications, from simple scalar values to complex multi-dimensional arrays. 
+
+### 5.1 Tensor Types and Precision
+
+GGML supports several data types for tensors, with a primary focus on floating-point types. The most commonly used types are:
+
+- **FP32**: Single-precision floating-point (32 bits).
+- **FP16**: Half-precision floating-point (16 bits).
+- **BF16**: Brain floating-point (16 bits), similar to FP16 but with a different bit layout for precision and range.
+- **I32**: 32-bit integer.
+- **I16**: 16-bit integer.
+- **I8**: 8-bit integer.
+
+These types allow for flexible precision control, which is essential in scenarios where memory constraints or computation speed are critical. For most machine learning tasks, FP16 and FP32 are the preferred types due to their balance of precision and efficiency.
+
+### 5.2 Declaring Tensors
+
+To declare a tensor, you first need to define its dimensions and data type. GGML provides a variety of functions to create tensors with different dimensionalities, allowing flexibility depending on the specific requirements:
+
+- `ggml_new_tensor_1d(ctx, type, ne0)`: Creates a 1D tensor.
+- `ggml_new_tensor_2d(ctx, type, ne0, ne1)`: Creates a 2D tensor.
+- `ggml_new_tensor_3d(ctx, type, ne0, ne1, ne2)`: Creates a 3D tensor.
+- `ggml_new_tensor_4d(ctx, type, ne0, ne1, ne2, ne3)`: Creates a 4D tensor.
+
+Here, `ne0`, `ne1`, `ne2`, and `ne3` represent the size of the tensor in each dimension, and `type` specifies the tensor's data type (e.g., `GGML_TYPE_F32` for 32-bit floating-point numbers).
+
+For instance, to create a 2D tensor with half-precision (FP16) and dimensions 2x3, you can use the following code:
 
 ```cpp
-int64_t rows = 4;
-int64_t cols = 4;
-
+int64_t rows = 2;
+int64_t cols = 3;
 struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
-verify_tensor_creation(ctx, a);
-
-struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
-verify_tensor_creation(ctx, b);
 ```
+
+Alternatively, GGML offers a more generalized helper function that the above functions rely on:
+
+- `ggml_new_tensor(ctx, type, n_dims, ne)`
+
+Here, `n_dims` specifies the number of dimensions, and `ne` is a pointer to an array that defines the size of the tensor in each dimension.
+
+Using this helper function, you can also create a 2D tensor with half-precision (FP16) and dimensions 2x3 as follows:
+
+```cpp
+const int n_dims = 2;
+const int64_t ne[n_dims] = { 2, 3 };
+struct ggml_tensor* a = ggml_new_tensor(ctx, GGML_TYPE_F16, n_dims, ne);
+```
+
+These examples demonstrate the versatility GGML offers for tensor creation, accommodating both high-level and low-level tensor declarations.
+
+While the functions like `ggml_new_tensor_1d`, `ggml_new_tensor_2d`, etc., abstract away the complexity for specific cases, they ultimately rely on the more generalized `ggml_new_tensor` function. This layered abstraction might seem superfluous, especially when working directly with the underlying function can provide more control. However, the abstraction serves to simplify common tensor creation patterns, making code more declarative and potentially improving readability, depending on the context.
+
+### 5.3 Initializing Tensor Values
+
+After declaring a tensor, the next logical step is to initialize its values. GGML provides a function designed for this purpose:
+
+- `ggml_set_f32(tensor, value)`: Sets all elements in the tensor to the specified float value.
+
+This function accepts an initialized tensor and a single value, setting every element in the tensor to this value. The name `ggml_set_f32` may be misleading, as it implies there could be other similar functions for different data types. However, GGML currently offers only two such functions—`ggml_set_f32` for floating-point tensors and `ggml_set_i32` for integer tensors, both performing essentially the same operation.
+
+For instance, if you wanted to zero-initialize a 2D tensor, the implementation could look like this:
+
+```cpp
+ggml_set_f32(a, 0); // uniformly zero-initialize the tensor
+```
+
+This approach effectively zeroes out the entire tensor, providing a straightforward and efficient method to initialize the tensor's values without introducing unnecessary complexity.
+
+The function itself uses a switch-case structure to handle different tensor data types. If the data type is `GGML_TYPE_F32`, for example, the following code snippet from `ggml_set_f32` is executed:
+
+```cpp
+case GGML_TYPE_F32:
+{
+    assert(tensor->nb[0] == sizeof(float));
+    for (int i = 0; i < n; i++) {
+        ggml_vec_set_f32(nc, (float *)(data + i*n1), value);
+    }
+} break;
+```
+
+Notice how the index is multipled by n1 and then added to data. i is the index (position in memory) and n1 is the size of the stride. This multiplies our position by the stride shifting us by each respective data element within the tensor. This is a valuable nuance to recognize.
+
+This block sets each element in the tensor to the specified value by calling the `ggml_vec_set_f32` function. The `ggml_vec_set_f32` function itself is straightforward:
+
+```c
+inline static void ggml_vec_set_f32(const int n, float * x, const float v) {
+    for (int i = 0; i < n; ++i) {
+        x[i] = v;
+    }
+}
+```
+
+Regardless of the tensor's data type, a similar pattern is followed, ensuring that each element is set uniformly. This design choice makes the `ggml_set_f32` function versatile but perhaps not as clearly named as it could be. A name like `ggml_set_tensor` might have been more intuitive, but the current implementation handles its task effectively.
+
+A more appropriate method to zero initialize a tensor would be to simply use the `ggml_set_zero` function which simply takes a tensor as an argument.
+
+```c
+ggml_set_zero(a);
+```
+
+In any case, `ggml_set_f32`, `ggml_set_i32`, and `ggml_set_zero` perform value assignment to the tensors elements. Something to note is that `ggml_set_zero` does not gracefully handle data types as the other two functions do.
+
+In summary, zero-initialization offers a simple yet effective way to ensure that all tensor elements start from a known state, making it a practical choice for many applications.
+
+#### 5.4 Tensor Operations
+
+Once tensors are declared and initialized, you can perform various operations on them, such as addition, multiplication, and more complex functions like convolution. For instance:
+
+```cpp
+struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
+// Initialize tensor `b` with values...
+struct ggml_tensor* x = ggml_mul(ctx, a, b);
+```
+
+Here, `ggml_mul` performs element-wise multiplication of tensors `a` and `b`.
+
+#### 5.5 Optimizing and Managing Memory
+
+GGML optimizes memory usage by allocating all required memory upfront in a buffer during the context initialization. When defining tensors and computation graphs, it's crucial to manage this memory efficiently to avoid exceeding the allocated buffer size.
+
+After creating tensors and defining operations, you can check the memory usage using:
+
+```cpp
+size_t used_mem = ggml_used_mem(ctx);
+```
+
+This helps in adjusting the buffer size for future operations, ensuring that your computations remain within memory limits.
+
+---
+
+### Next Steps
+
+With the basics of tensors covered, the next section will delve into how these tensors are integrated into a computation graph. This graph represents the sequence of operations and dependencies between tensors, enabling efficient forward and backward computations.
 
 ## **6. Matrix Multiplication and Addition Operations**
 
