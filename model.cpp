@@ -45,7 +45,7 @@ void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type) {
     if (tensor->data && tensor->type == type) {
         printf("First few elements:\n");
         float* data_f32 = (float*) tensor->data;
-        for (int i = 0; i < 10 && i < tensor->ne[0]; ++i) {
+        for (int i = 0; i < GGML_MAX_SRC && i < tensor->ne[0]; ++i) {
             printf("%f ", data_f32[i]);
         }
         printf("\n");
@@ -74,22 +74,28 @@ int main() {
 
     // Create a 2D tensor and print its information
     struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 3, 4);
+    ggml_set_name(a, "a");
     ggml_set_f32(a, 42.0f); // Set all elements to 42.0
     print_tensor_info(a, GGML_TYPE_F32);
 
     // Create a 2D tensor and print its information
     struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 3, 4);
+    ggml_set_name(b, "b");
     ggml_set_f32(b, 0.0f); // Set all elements to 42.0
     print_tensor_info(b, GGML_TYPE_F32);
 
-    // // todo: set the computation graph, otherwise nothing happens
+    // todo: set the computation graph, otherwise nothing happens
 
-    // // Perform matrix multiplication using ggml_mul()
-    // struct ggml_tensor* x = ggml_mul(ctx, a, b);
-    // verify_tensor_creation(ctx, x);
+    // Perform matrix multiplication using ggml_mul()
+    struct ggml_tensor* x = ggml_mul(ctx, a, b);
+    ggml_set_name(x, "x");
+    verify_tensor_creation(ctx, x);
+    print_tensor_info(x, GGML_TYPE_F32);
 
-    // // Tensor addition operation
-    // struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
+    // Tensor addition operation
+    struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
+    ggml_set_name(f, "f");
+    print_tensor_info(f, GGML_TYPE_F32);
 
     ggml_free(ctx);
 
