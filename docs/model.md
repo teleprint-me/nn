@@ -362,9 +362,37 @@ While `ggml_set_f32` and `ggml_set_i32` are versatile and handle different data 
 
 Zero initialization is often the most practical choice for tensor initialization, ensuring that all elements begin from a uniform, known state. Whether using `ggml_set_f32`, `ggml_set_i32`, or `ggml_set_zero`, the approach remains straightforward, effective, and easy to implement, making it a valuable tool in GGML tensor management.
 
-#### 5.4. Tensor Operations
 
-Once tensors are declared and initialized, you can perform various operations on them, such as addition, multiplication, and more complex functions like convolution. For instance:
+### 5.4. Tensor Operations
+
+Once tensors are declared and initialized, various operations can be performed on them, such as addition, multiplication, and more complex functions like convolution. These operations are organized and executed through a computation graph, which ensures the correct order and dependencies of operations. This section provides an overview of the related data structures, the process of computing tensors, and how to execute these computations.
+
+#### 5.4.1 Computation Graph
+
+In GGML, a computation graph is represented by the `ggml_cgraph` structure. This graph is essential for tracking and executing tensor operations. Here’s a brief overview of the key components:
+
+- **nodes**: An array of pointers to the tensors (or nodes) within the graph.
+- **leafs**: An array of pointers to the leaf nodes, which are the tensors that serve as inputs or constants.
+- **grads**: If gradients are computed, this array stores pointers to the gradient tensors.
+- **visited_hash_set**: A hash set used to keep track of which nodes have been visited during graph construction.
+- **order**: Determines the evaluation order of the graph, either left-to-right or right-to-left.
+
+These components collectively allow GGML to manage the execution of tensor operations, ensuring that the correct order and dependencies are maintained.
+
+##### Example: Building a Forward Graph
+
+To start working with tensor operations, you first need to construct a forward computation graph. This graph organizes the operations in a sequence that respects their dependencies.
+
+```c
+struct ggml_cgraph * gf = ggml_new_graph(ctx);
+ggml_build_forward_expand(gf, tensor);
+```
+
+In this example, the forward graph (`gf`) holds the computational nodes used during a forward pass. The function `ggml_build_forward_expand` adds tensor operations to this graph, ensuring that each operation is appropriately linked to its inputs and outputs.
+
+#### 5.4.2 Computing Tensors
+
+Once the computation graph is set up, you can perform various operations on the tensors within the graph. Operations like addition, multiplication, and convolution are defined as nodes within the graph, with each node representing a specific computation.
 
 ```cpp
 struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
@@ -372,9 +400,23 @@ struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F16, rows, cols);
 struct ggml_tensor* x = ggml_mul(ctx, a, b);
 ```
 
-Here, `ggml_mul` performs element-wise multiplication of tensors `a` and `b`.
+In this example, `ggml_mul` is used to perform element-wise multiplication of tensors `a` and `b`. The resulting tensor `x` is automatically added to the computation graph, with the graph keeping track of this operation and its dependencies.
 
-#### 5.5. Optimizing and Managing Memory
+This section will delve into various tensor operations, demonstrating how different functions like `ggml_add`, `ggml_sub`, and others are used in practice. Each operation is linked to the computation graph, ensuring that all dependencies are maintained and evaluated in the correct order.
+
+#### 5.4.3 Executing the Computation Graph
+
+After defining the operations within the computation graph, the next step is to execute the graph. This involves evaluating all the nodes in the graph in the correct order, ensuring that each operation is carried out as specified.
+
+```cpp
+ggml_graph_compute_with_ctx(ctx, gf, 8);
+```
+
+The function `ggml_graph_compute` executes the computation graph, processing all the operations in sequence. During this execution, the graph evaluates each node, performing the necessary calculations and updating the tensors accordingly.
+
+This section will provide an in-depth look at how to execute the computation graph, including examples of common operations and tips for optimizing performance. By the end of this section, you should have a solid understanding of how tensor operations are managed and executed within GGML.
+
+### 5.6. Optimizing and Managing Memory
 
 GGML optimizes memory usage by allocating all required memory upfront in a buffer during the context initialization. When defining tensors and computation graphs, it's crucial to manage this memory efficiently to avoid exceeding the allocated buffer size.
 
