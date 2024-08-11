@@ -110,20 +110,60 @@ Note that we disable the compilers cache to mitigate subtle issues during the de
 
 ## **4. Initializing the GGML Context**
 
-The GGML context is initialized with a predefined memory size, which allocates the necessary resources for tensor operations. Failure to initialize the context results in an error message and the program's termination.
+In the GGML Tensor Library, the initialization of the context is a critical step that sets up the memory management framework for all subsequent tensor operations. The context is initialized with the `ggml_init` function, which requires a `ggml_init_params` structure that defines the parameters for memory allocation.
+
+### **4.1. ggml_init_params Structure**
+
+The `ggml_init_params` structure is defined in `ggml.h` and consists of the following fields:
+
+- **`size_t mem_size`**: This field specifies the size of the memory pool that will be used by the GGML context. It is essential to allocate sufficient memory to accommodate all tensors and operations that will be performed. For instance, setting `mem_size` to `16 * 1024 * 1024` allocates 16 MB of memory.
+
+- **`void * mem_buffer`**: This pointer allows the user to pass a pre-allocated memory buffer to the GGML context. If `mem_buffer` is set to `NULL`, GGML will internally allocate memory based on the `mem_size` specified. Using a custom buffer can be beneficial for managing memory in environments with specific memory constraints or for integrating with other memory management systems.
+
+- **`bool no_alloc`**: When set to `true`, this field instructs GGML not to allocate memory for the tensor data. This option is useful in scenarios where the user wishes to manage tensor memory manually, possibly for optimization purposes. By default, this is set to `false`, meaning GGML will handle memory allocation internally.
+
+### **4.2. Initialization Example**
+
+The context initialization typically occurs at the beginning of the `main` function or any function where tensor operations will be performed. Here's an example:
 
 ```cpp
-struct ggml_init_params params = {
-    .mem_size   = 16 * 1024 * 1024, // 16 MB
-    .mem_buffer = NULL,             // Let ggml manage the memory allocation
-};
+// model.cpp
+#include "ggml.h"
+#include <cstdio>
 
-struct ggml_context* ctx = ggml_init(params);
-if (!ctx) {
-    fprintf(stderr, "Failed to initialize ggml context\n");
-    return 1;
+int main() {
+    // Initialize the GGML context with a predefined memory size
+    ggml_init_params params = {
+        .mem_size   = 16 * 1024 * 1024, // 16 MB
+        .mem_buffer = NULL,             // Let GGML manage the memory allocation
+        .no_alloc   = false             // Allocate memory for the tensor data
+    };
+
+    struct ggml_context* ctx = ggml_init(params);
+    if (!ctx) {
+        fprintf(stderr, "Failed to initialize GGML context\n");
+        return 1;
+    }
+
+    // Further code for tensor operations
+    // ...
+
+    // Clean up and free resources
+    ggml_free(ctx);
+
+    return 0;
 }
 ```
+
+### **4.3. Error Handling in Initialization**
+
+Proper error handling is crucial when initializing the GGML context, as it ensures that the program gracefully handles memory allocation failures or other issues during context creation. The context initialization can fail if there isn't enough memory available, or if the system encounters other resource limitations.
+
+In the example provided, the program checks if the context (`ctx`) is `NULL` after calling `ggml_init`. If the context is `NULL`, an error message is printed, and the program exits with a non-zero status to indicate failure.
+
+### **4.4. Resource Management**
+
+After initializing the GGML context and performing the necessary tensor operations, it's essential to free the allocated resources to avoid memory leaks. This is done using the `ggml_free` function, which deallocates the memory associated with the GGML context.
 
 ## **5. Creating Tensors with Half-Precision Data (F16)**
 
