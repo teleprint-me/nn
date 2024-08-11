@@ -375,12 +375,6 @@ size_t used_mem = ggml_used_mem(ctx);
 
 This helps in adjusting the buffer size for future operations, ensuring that your computations remain within memory limits.
 
----
-
-### Next Steps
-
-With the basics of tensors covered, the next section will delve into how these tensors are integrated into a computation graph. This graph represents the sequence of operations and dependencies between tensors, enabling efficient forward and backward computations.
-
 ## **6. Matrix Multiplication and Addition Operations**
 
 Matrix multiplication is performed using `ggml_mul()`, and the results are further processed with addition operations using `ggml_add()`. These operations are central to many machine learning tasks.
