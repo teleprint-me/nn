@@ -1,8 +1,8 @@
-## **GGML Overview**
+# **GGML Overview**
 
 The [GGML](https://github.com/ggerganov/ggml) Tensor Library is a minimalistic approach for various machine learning tasks such as linear regression, support vector machines (SVMs), and neural networks. This library revolves around defining tensor operations using a computation graph to represent the core of its computational model.
 
-### **Key Components**
+## **Key Components**
 
 1. **Minimalistic Approach**: GGML focuses on essential operations for machine learning tasks with a deferred execution mechanism.
 2. **Automatic Differentiation and Optimization**: The library includes mechanisms for automatic differentiation, which is critical for training neural networks and other models.
