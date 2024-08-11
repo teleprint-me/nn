@@ -69,32 +69,43 @@ int main() {
     }
 
     // Define tensor dimensions
-    int64_t rows = 2;
-    int64_t cols = 3;
+    int64_t ne0 = 3; // number elements with in a row
+    int64_t ne1 = 4; // number of elements iwthin a column
 
-    // Create a 2D tensor and print its information
-    struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 3, 4);
-    ggml_set_name(a, "a");
-    ggml_set_f32(a, 42.0f); // Set all elements to 42.0
-    print_tensor_info(a, GGML_TYPE_F32);
+    // Define the tensors to be used within the computation graph
+    struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, ne0, ne1);
+    ggml_set_name(a, "a"); // label the tensor for identifcation
 
-    // Create a 2D tensor and print its information
-    struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 3, 4);
+    struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, ne0, ne1);
     ggml_set_name(b, "b");
-    ggml_set_f32(b, 0.0f); // Set all elements to 42.0
-    print_tensor_info(b, GGML_TYPE_F32);
 
-    // todo: set the computation graph, otherwise nothing happens
-
-    // Perform matrix multiplication using ggml_mul()
+    // Define operations for each node within the computation graph
     struct ggml_tensor* x = ggml_mul(ctx, a, b);
     ggml_set_name(x, "x");
-    verify_tensor_creation(ctx, x);
-    print_tensor_info(x, GGML_TYPE_F32);
 
-    // Tensor addition operation
     struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
     ggml_set_name(f, "f");
+
+    // Build the computation graph
+    struct ggml_cgraph* gf = ggml_new_graph(ctx);
+    ggml_build_forward_expand(gf, f);
+
+    // Initialize the tensors and computation graph
+    ggml_set_f32(a, 2.0f); // Initialize elements in a to 2.0f
+    print_tensor_info(a, GGML_TYPE_F32);
+
+    ggml_set_f32(b, 1.0f); // Initialize elements in b to 1.0f
+    print_tensor_info(b, GGML_TYPE_F32);
+
+    ggml_set_f32(x, 3.0f); // Initialize elements in x to 3.0f
+    print_tensor_info(x, GGML_TYPE_F32);
+    // same as ggml_graph_compute() but the work data is allocated as a part of
+    // the context note: the drawback of this API is that you must have ensured
+    // that the context has enough memory for the work data
+    // ggml_status ggml_graph_compute_with_ctx(
+    //     ggml_context *ctx, ggml_cgraph *cgraph, int n_threads
+    // )
+    ggml_graph_compute_with_ctx(ctx, gf, 8);
     print_tensor_info(f, GGML_TYPE_F32);
 
     ggml_free(ctx);
