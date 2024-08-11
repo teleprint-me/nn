@@ -110,24 +110,109 @@ Note that we disable the compilers cache to mitigate subtle issues during the de
 
 ## **4. Initializing the GGML Context**
 
-In the GGML Tensor Library, the initialization of the context is a critical step that sets up the memory management framework for all subsequent tensor operations. The context is initialized with the `ggml_init` function, which requires a `ggml_init_params` structure that defines the parameters for memory allocation.
+In the GGML Tensor Library, the context initialization is a critical process that sets up the memory management and execution environment for tensor operations. The initialization process involves the `ggml_init` function, which takes a `ggml_init_params` structure as its argument.
 
-### **4.1. ggml_init_params Structure**
+### **4.1. Understanding the ggml_context Structure**
 
-The `ggml_init_params` structure is defined in `ggml.h` and consists of the following fields:
+The `ggml_context` structure is central to managing memory and tensor operations in GGML. It is defined as follows:
 
-- **`size_t mem_size`**: This field specifies the size of the memory pool that will be used by the GGML context. It is essential to allocate sufficient memory to accommodate all tensors and operations that will be performed. For instance, setting `mem_size` to `16 * 1024 * 1024` allocates 16 MB of memory.
+```c
+struct ggml_context {
+    size_t mem_size;           // Size of the memory pool (in bytes)
+    void* mem_buffer;          // Pointer to the memory buffer
+    bool   mem_buffer_owned;   // Indicates whether GGML owns the memory buffer
+    bool   no_alloc;           // Flag to indicate if memory allocation for tensor data is disabled
+    bool   no_alloc_save;      // Saves the no_alloc state when using scratch buffers
 
-- **`void * mem_buffer`**: This pointer allows the user to pass a pre-allocated memory buffer to the GGML context. If `mem_buffer` is set to `NULL`, GGML will internally allocate memory based on the `mem_size` specified. Using a custom buffer can be beneficial for managing memory in environments with specific memory constraints or for integrating with other memory management systems.
+    int    n_objects;          // Number of objects (tensors) created in this context
 
-- **`bool no_alloc`**: When set to `true`, this field instructs GGML not to allocate memory for the tensor data. This option is useful in scenarios where the user wishes to manage tensor memory manually, possibly for optimization purposes. By default, this is set to `false`, meaning GGML will handle memory allocation internally.
+    struct ggml_object * objects_begin;  // Pointer to the first tensor object
+    struct ggml_object * objects_end;    // Pointer to the last tensor object
 
-### **4.2. Initialization Example**
+    struct ggml_scratch scratch;         // Scratch buffer for temporary data
+    struct ggml_scratch scratch_save;    // Backup of the scratch buffer
+};
+```
 
-The context initialization typically occurs at the beginning of the `main` function or any function where tensor operations will be performed. Here's an example:
+- **Memory Management**: The `mem_size` and `mem_buffer` fields manage the memory pool for tensor operations. The `mem_buffer_owned` field indicates if the memory was allocated by GGML or provided externally.
+- **Tensor Management**: The `n_objects`, `objects_begin`, and `objects_end` fields manage the linked list of tensors created within the context.
+- **Scratch Buffers**: The `scratch` and `scratch_save` fields are used for managing temporary data during operations, allowing efficient memory reuse.
+
+### **4.2. The ggml_init Function**
+
+The `ggml_init` function is responsible for creating and initializing the GGML context. The function performs the following steps:
+
+1. **Thread Safety**: The function starts by entering a critical section to ensure thread safety.
+
+2. **First Call Initialization**: On the first call, the function initializes global states such as the time system (required on Windows), various precomputed tables (e.g., GELU, Quick GELU, SILU), and the global GGML state (`g_state`).
+
+3. **Context Allocation**: The function searches for an unused context in the global state. If no unused context is found, the function returns `NULL`.
+
+4. **Memory Setup**: The function sets up the memory for the context. If the user provides a memory buffer, it is used; otherwise, GGML allocates memory internally. The memory size is adjusted for alignment requirements.
+
+5. **Context Initialization**: The context is initialized with the provided parameters, including memory size, buffer, and allocation flags.
+
+6. **Finalization**: The function ends the critical section and returns the initialized context.
+
+Here’s a breakdown of the `ggml_init` function:
+
+```c
+struct ggml_context * ggml_init(struct ggml_init_params params) {
+    ggml_critical_section_start();
+
+    static bool is_first_call = true;
+    if (is_first_call) {
+        ggml_time_init();
+        // Initialize various precomputed tables
+        is_first_call = false;
+    }
+
+    struct ggml_context * ctx = NULL;
+    for (int i = 0; i < GGML_MAX_CONTEXTS; i++) {
+        if (!g_state.contexts[i].used) {
+            g_state.contexts[i].used = true;
+            ctx = &g_state.contexts[i].context;
+            break;
+        }
+    }
+
+    if (ctx == NULL) {
+        ggml_critical_section_end();
+        return NULL;
+    }
+
+    if (params.mem_size == 0) {
+        params.mem_size = GGML_MEM_ALIGN;
+    }
+
+    const size_t mem_size = params.mem_buffer ? params.mem_size : GGML_PAD(params.mem_size, GGML_MEM_ALIGN);
+    *ctx = (struct ggml_context) {
+        .mem_size           = mem_size,
+        .mem_buffer         = params.mem_buffer ? params.mem_buffer : GGML_ALIGNED_MALLOC(mem_size),
+        .mem_buffer_owned   = params.mem_buffer ? false : true,
+        .no_alloc           = params.no_alloc,
+        .no_alloc_save      = params.no_alloc,
+        .n_objects          = 0,
+        .objects_begin      = NULL,
+        .objects_end        = NULL,
+        .scratch            = { 0, 0, NULL, },
+        .scratch_save       = { 0, 0, NULL, },
+    };
+
+    GGML_ASSERT(ctx->mem_buffer != NULL);
+    GGML_ASSERT_ALIGNED(ctx->mem_buffer);
+
+    ggml_critical_section_end();
+
+    return ctx;
+}
+```
+
+### **4.3. Practical Application in model.cpp**
+
+To apply this in practice, consider the following example from `model.cpp`:
 
 ```cpp
-// model.cpp
 #include "ggml.h"
 #include <cstdio>
 
@@ -145,8 +230,7 @@ int main() {
         return 1;
     }
 
-    // Further code for tensor operations
-    // ...
+    // Tensor operations would be performed here...
 
     // Clean up and free resources
     ggml_free(ctx);
@@ -155,15 +239,11 @@ int main() {
 }
 ```
 
-### **4.3. Error Handling in Initialization**
+In this example:
 
-Proper error handling is crucial when initializing the GGML context, as it ensures that the program gracefully handles memory allocation failures or other issues during context creation. The context initialization can fail if there isn't enough memory available, or if the system encounters other resource limitations.
+- The GGML context is initialized with a memory pool of 16 MB. The `mem_buffer` is set to `NULL`, allowing GGML to handle memory allocation. The `no_alloc` flag is set to `false`, indicating that GGML should allocate memory for tensor data.
 
-In the example provided, the program checks if the context (`ctx`) is `NULL` after calling `ggml_init`. If the context is `NULL`, an error message is printed, and the program exits with a non-zero status to indicate failure.
-
-### **4.4. Resource Management**
-
-After initializing the GGML context and performing the necessary tensor operations, it's essential to free the allocated resources to avoid memory leaks. This is done using the `ggml_free` function, which deallocates the memory associated with the GGML context.
+- The context is then used for tensor operations. After all operations are completed, the context is freed using `ggml_free` to ensure that all allocated resources are properly released.
 
 ## **5. Creating Tensors with Half-Precision Data (F16)**
 
