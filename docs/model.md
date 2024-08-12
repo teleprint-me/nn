@@ -8,8 +8,8 @@ This document provides a comprehensive explanation of the `model.cpp` file withi
 2. **File Structure**
 3. **Dependencies**
 4. **Initializing the GGML Context**
-5. **Creating Tensors with Half-Precision Data (F16)**
-6. **Matrix Multiplication Operations**
+5. **Working with Tensors in GGML**
+6. **Elementwise Operations**
 7. **Cleaning Up Resources**
 8. **Limitations and Future Work**
 
