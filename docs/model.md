@@ -527,17 +527,35 @@ The elementwise operations provided by GGML are fundamental building blocks for 
 
 ## 7. Cleaning Up Resources
 
-In most cases, GGML will handle memory allocation for us. As a result, the most common user facing functions used for freeing allocated memory are:
+Effective memory management is essential when working with GGML, especially in resource-constrained environments. While GGML handles most memory allocations automatically, it's important to know how and when to free resources to prevent memory leaks and optimize performance.
 
-- `void gguf_free(struct gguf_context * ctx)`: This is typically used to free a model from memory, e.g. a trained model file is loaded into memory and then needs to be freed.
-- `void ggml_free(struct ggml_context * ctx) `: This is typically used to free the ggml context from memory. This is the function used in the example program, `model.cpp`.
-- `void ggml_quantize_free(void)`: This is used to free initialized memory utilized for quantized models. This would be the inverse operation for `void ggml_quantize_init(enum ggml_type type)` which allocated memory to the necessary tensors utlized by the model at inference time.
+### 7.1 Key Functions for Resource Cleanup
 
-After the tensor operations, the GGML context and associated resources are freed to avoid memory leaks. Proper resource management is crucial in maintaining efficient and reliable applications.
+GGML provides several user-facing functions to free allocated memory. These functions are typically used after you’re done with models or contexts to ensure that all resources are properly released.
 
-```cpp
+- **`gguf_free(struct gguf_context * ctx)`**: This function is used to free a GGUF context from memory, which typically involves unloading a trained model that was previously loaded into memory.
+
+- **`ggml_free(struct ggml_context * ctx)`**: This function is used to free the GGML context, releasing all the resources associated with it. It’s commonly used in example programs like `model.cpp`.
+
+- **`ggml_quantize_free(void)`**: This function frees the memory allocated for quantized models. It’s the inverse of `ggml_quantize_init(enum ggml_type type)`, which allocates memory for the necessary tensors used by the model during inference.
+
+### 7.2 Example: Freeing the GGML Context
+
+After completing tensor operations, it's important to free the GGML context to avoid memory leaks. Here’s an example:
+
+```c
 ggml_free(ctx);
 ```
+
+This simple call releases all memory associated with the GGML context, ensuring that your application does not retain unused resources.
+
+### 7.3 Managing Memory Manually
+
+While GGML automates much of the memory management process, there are situations where manual memory management may be desirable to reduce overhead or optimize memory usage. For instance, advanced users may choose to manage memory manually in scenarios involving large models or limited resources. However, this approach requires a deep understanding of GGML’s memory handling to avoid unintended consequences.
+
+### 7.4 Final Thoughts
+
+Resource management in GGML strikes a balance between automated memory handling and the flexibility for manual optimization. Proper cleanup is crucial for maintaining efficient and reliable applications, particularly when dealing with complex models and large datasets.
 
 ## 8. Limitations and Future Work
 
