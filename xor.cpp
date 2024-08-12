@@ -22,6 +22,8 @@
 
 #include "ggml.h"
 
+#include <random>
+
 struct xor_hparams {
     uint32_t n_input  = 2; // XOR has 2 input features
     uint32_t n_hidden = 4; // Number of hidden units (adjustable)
@@ -73,10 +75,23 @@ xor_model init_xor_model(void) {
     return model;
 }
 
+void he_initialization(ggml_tensor* tensor, uint32_t input_dim) {
+    std::random_device              rd;
+    std::mt19937                    gen(rd());
+    std::normal_distribution<float> dist(0.0f, std::sqrt(2.0f / input_dim));
+
+    float* data = (float*) tensor->data;
+    for (int i = 0; i < ggml_nelements(tensor); ++i) {
+        data[i] = dist(gen);
+    }
+}
+
 int main(void) {
     // implementation steps:
     //   1. initialization
     xor_model model = init_xor_model();
+    he_initialization(model.input_layer.weights, model.hparams.n_input);
+    he_initialization(model.hidden_layer.weights, model.hparams.n_hidden);
 
     //   2. forward pass
     //   3. backward pass
