@@ -448,13 +448,20 @@ These functions provide insights into memory usage, allowing you to adjust the b
 
 ## 6. Elementwise Operations
 
-GGML offers many operations, more than can be covered in a rudimentary introduction to using the GGML library itself. However, We can do a soft introduction to common mathemetical operations.
+GGML provides a variety of elementwise operations that are fundamental to many machine learning tasks. These operations allow you to perform mathematical computations on tensors in a straightforward and efficient manner. This section introduces some of the most commonly used elementwise operations in GGML, including addition, subtraction, multiplication, and division.
 
-As such, we will begin by covering the esstial operation avaiilable within the library.
+### 6.1 Overview of Elementwise Operations
 
-GGML typically will wrap the underlying components in an attempt to simplify the user implementation. We will take a peek at each of these operations, which are mostly straightforward.
+Elementwise operations in GGML are designed to operate on corresponding elements of two tensors. These operations are crucial in many neural network computations, such as updating weights, applying activation functions, and performing transformations. The library wraps these operations in a way that simplifies their usage, making them accessible and easy to implement.
 
-- Elementwise addition
+### 6.2 Common Elementwise Operations
+
+Below are some of the essential elementwise operations available in GGML:
+
+#### 6.2.1 Elementwise Addition
+
+Elementwise addition adds corresponding elements of two tensors.
+
 ```c
 struct ggml_tensor * ggml_add(
         struct ggml_context * ctx,
@@ -464,7 +471,10 @@ struct ggml_tensor * ggml_add(
 }
 ```
 
-- Elementwise subtraction
+#### 6.2.2 Elementwise Subtraction
+
+Elementwise subtraction subtracts corresponding elements of tensor `b` from tensor `a`.
+
 ```c
 struct ggml_tensor * ggml_sub(
         struct ggml_context * ctx,
@@ -474,33 +484,46 @@ struct ggml_tensor * ggml_sub(
 }
 ```
 
-- Elementwise multiplication
+#### 6.2.3 Elementwise Multiplication
+
+Elementwise multiplication multiplies corresponding elements of two tensors.
+
 ```c
 struct ggml_tensor * ggml_mul(
         struct ggml_context * ctx,
-        struct ggml_tensor  * a,
-        struct ggml_tensor  * b) {
+        struct ggml_tensor * a,
+        struct ggml_tensor * b) {
     return ggml_mul_impl(ctx, a, b, false);
 }
 ```
 
-- Elementwise division
+#### 6.2.4 Elementwise Division
+
+Elementwise division divides corresponding elements of tensor `a` by tensor `b`.
+
 ```c
 struct ggml_tensor * ggml_div(
         struct ggml_context * ctx,
-        struct ggml_tensor  * a,
-        struct ggml_tensor  * b) {
+        struct ggml_tensor * a,
+        struct ggml_tensor * b) {
     return ggml_div_impl(ctx, a, b, false);
 }
 ```
 
-Matrix multiplication is performed using `ggml_mul()`, and the results are further processed with addition operations using `ggml_add()`. These operations are central to many machine learning tasks.
+### 6.3 Example: Combining Operations
 
-```cpp
+Often, these operations are combined to form more complex expressions. For example, matrix multiplication is performed using `ggml_mul()`, and the results can be further processed with addition operations using `ggml_add()`:
+
+```c
 struct ggml_tensor* x = ggml_mul(ctx, a, b);
-
 struct ggml_tensor* f = ggml_add(ctx, ggml_mul(ctx, a, x), b);
 ```
+
+In this example, `x` represents the result of the multiplication of tensors `a` and `b`, while `f` represents the result of adding `b` to the product of `a` and `x`.
+
+### 6.4 Wrapping Up
+
+The elementwise operations provided by GGML are fundamental building blocks for more complex computations in machine learning models. Understanding these basic operations is key to effectively utilizing the library in your projects.
 
 ## 7. Cleaning Up Resources
 
