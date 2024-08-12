@@ -416,17 +416,35 @@ The function `ggml_graph_compute` executes the computation graph, processing all
 
 This section will provide an in-depth look at how to execute the computation graph, including examples of common operations and tips for optimizing performance. By the end of this section, you should have a solid understanding of how tensor operations are managed and executed within GGML.
 
-### 5.6. Optimizing and Managing Memory
+### 5.5. Optimizing and Managing Memory
 
-GGML optimizes memory usage by allocating all required memory upfront in a buffer during the context initialization. When defining tensors and computation graphs, it's crucial to manage this memory efficiently to avoid exceeding the allocated buffer size.
+GGML optimizes memory usage by allocating all required memory upfront in a buffer during the context initialization. Efficient memory management is crucial, especially in advanced applications like language processing with large datasets, where memory constraints can significantly impact performance.
 
-After creating tensors and defining operations, you can check the memory usage using:
+#### 5.5.1 Memory Usage Overview
 
-```cpp
-size_t used_mem = ggml_used_mem(ctx);
-```
+To monitor and optimize memory usage, GGML provides several functions:
 
-This helps in adjusting the buffer size for future operations, ensuring that your computations remain within memory limits.
+- **`ggml_used_mem(ctx)`**: Returns the amount of memory currently used by the tensors in the context. This is useful for tracking how much of the allocated buffer has been utilized.
+
+    ```cpp
+    size_t used_mem = ggml_used_mem(ctx);
+    printf("Memory used: %zu bytes\n", used_mem);
+    ```
+
+- **`ggml_get_mem_buffer(ctx)`**: Returns a pointer to the memory buffer managed by GGML. This can be useful for inspecting or managing the buffer directly.
+
+    ```cpp
+    void * mem_buffer = ggml_get_mem_buffer(ctx);
+    ```
+
+- **`ggml_get_mem_size(ctx)`**: Returns the total size of the memory buffer allocated by GGML. This helps in understanding the overall memory capacity that you are working within.
+
+    ```cpp
+    size_t mem_size = ggml_get_mem_size(ctx);
+    printf("Total memory size: %zu bytes\n", mem_size);
+    ```
+
+These functions provide insights into memory usage, allowing you to adjust the buffer size or manage tensors more effectively to stay within memory limits. GGML’s approach to memory management does a lot of the heavy lifting, but understanding these details can help in optimizing performance, especially in more memory-intensive scenarios.
 
 ## 6. Matrix Multiplication and Addition Operations
 
