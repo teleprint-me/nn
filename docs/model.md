@@ -446,7 +446,53 @@ To monitor and optimize memory usage, GGML provides several functions:
 
 These functions provide insights into memory usage, allowing you to adjust the buffer size or manage tensors more effectively to stay within memory limits. GGML’s approach to memory management does a lot of the heavy lifting, but understanding these details can help in optimizing performance, especially in more memory-intensive scenarios.
 
-## 6. Matrix Multiplication and Addition Operations
+## 6. Elementwise Operations
+
+GGML offers many operations, more than can be covered in a rudimentary introduction to using the GGML library itself. However, We can do a soft introduction to common mathemetical operations.
+
+As such, we will begin by covering the esstial operation avaiilable within the library.
+
+GGML typically will wrap the underlying components in an attempt to simplify the user implementation. We will take a peek at each of these operations, which are mostly straightforward.
+
+- Elementwise addition
+```c
+struct ggml_tensor * ggml_add(
+        struct ggml_context * ctx,
+        struct ggml_tensor * a,
+        struct ggml_tensor * b) {
+    return ggml_add_impl(ctx, a, b, false);
+}
+```
+
+- Elementwise subtraction
+```c
+struct ggml_tensor * ggml_sub(
+        struct ggml_context * ctx,
+        struct ggml_tensor * a,
+        struct ggml_tensor * b) {
+    return ggml_sub_impl(ctx, a, b, false);
+}
+```
+
+- Elementwise multiplication
+```c
+struct ggml_tensor * ggml_mul(
+        struct ggml_context * ctx,
+        struct ggml_tensor  * a,
+        struct ggml_tensor  * b) {
+    return ggml_mul_impl(ctx, a, b, false);
+}
+```
+
+- Elementwise division
+```c
+struct ggml_tensor * ggml_div(
+        struct ggml_context * ctx,
+        struct ggml_tensor  * a,
+        struct ggml_tensor  * b) {
+    return ggml_div_impl(ctx, a, b, false);
+}
+```
 
 Matrix multiplication is performed using `ggml_mul()`, and the results are further processed with addition operations using `ggml_add()`. These operations are central to many machine learning tasks.
 
