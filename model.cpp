@@ -1,5 +1,7 @@
 /*
  * model.cpp
+ *
+ * Reference docs/model.md for detailed information
  */
 
 #include "ggml.h"
