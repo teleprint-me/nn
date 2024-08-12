@@ -559,8 +559,18 @@ Resource management in GGML strikes a balance between automated memory handling 
 
 ## 8. Limitations and Future Work
 
-This example serves as a basic introduction to GGML, but it lacks support for more advanced features like backward propagation. Future work could include:
+This document serves as a foundational introduction to the GGML library, offering a starting point for users to understand and apply its core features. However, GGML is a rapidly evolving library, and this document will likely need updates to accommodate future changes and improvements.
 
-- Implementing backward passes for training models.
-- Enhancing error handling and validation.
-- Exploring other data types and more complex tensor operations.
+### Limitations
+- **Scope**: The current example covers only the basic forward computation. It doesn't delve into more complex topics like backward propagation, advanced tensor operations, or model training.
+- **Memory Management**: While GGML handles most memory operations, more intricate memory management and optimization techniques were only briefly touched upon.
+- **Error Handling**: Basic error handling is implemented, but there is room for improvement, particularly in scenarios involving large datasets or complex models.
+
+### Future Work
+- **Backward Propagation**: Implementing backward passes would enable users to train models, opening the door to more advanced machine learning applications.
+- **Complex Models**: Extending the example to more complex models, such as an XOR model, would provide a deeper understanding of GGML’s capabilities.
+- **Improved Documentation**: As GGML evolves, this documentation will need to be updated to reflect new features, optimizations, and best practices. Contributions from the community could play a key role in maintaining and enhancing the documentation.
+
+### Conclusion
+
+This document is a starting point for users interested in GGML. As the library evolves, so too should this guide. The journey doesn’t end here; it’s just the beginning. With further exploration, refinement, and community collaboration, GGML can become even more powerful and accessible for a wide range of applications.
