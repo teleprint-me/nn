@@ -21,6 +21,7 @@
  */
 
 #include "ggml.h"
+#include "nn.h"
 
 #include <cstring>
 #include <random>
@@ -87,30 +88,6 @@ struct xor_model init_xor_model(void) {
     init_xor_hidden_layers(&model);
 
     return model;
-}
-
-void he_initialization(ggml_tensor* tensor, uint32_t input_dim) {
-    std::random_device              rd;
-    std::mt19937                    gen(rd());
-    std::normal_distribution<float> dist(0.0f, std::sqrt(2.0f / input_dim));
-
-    float* data = (float*) tensor->data;
-    for (int i = 0; i < ggml_nelements(tensor); ++i) {
-        data[i] = dist(gen);
-    }
-}
-
-// Define a helper function to set tensor values manually
-void set_tensor_data_f32(
-    ggml_tensor* tensor, float* data, int64_t rows, int64_t cols
-) {
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            float* dst = (float*) ((char*) tensor->data + i * tensor->nb[1]
-                                   + j * tensor->nb[0]);
-            *dst       = data[i * cols + j];
-        }
-    }
 }
 
 int main(void) {

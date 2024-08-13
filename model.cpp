@@ -5,56 +5,9 @@
  */
 
 #include "ggml.h"
+#include "nn.h"
 
 #include <cstdio>
-
-void verify_tensor_creation(
-    struct ggml_context* ctx, struct ggml_tensor* tensor
-) {
-    if (!tensor) {
-        fprintf(stderr, "Failed to create ggml tensor\n");
-        return;
-    }
-}
-
-void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type) {
-    if (!tensor) {
-        fprintf(stderr, "Tensor is NULL\n");
-        return;
-    }
-
-    printf("Tensor Info:\n");
-    printf("Name: %s\n", tensor->name);
-    printf("Type: %d\n", tensor->type);
-    printf("Dimensions: ");
-    for (int i = 0; i < GGML_MAX_DIMS; ++i) {
-        printf("%lld ", tensor->ne[i]);
-    }
-    printf("\n");
-
-    printf("Strides: ");
-    for (int i = 0; i < GGML_MAX_DIMS; ++i) {
-        printf("%zu ", tensor->nb[i]);
-    }
-    printf("\n");
-
-    printf("Data Pointer: %p\n", tensor->data);
-    printf("View Source: %p\n", tensor->view_src);
-    printf("View Offset: %zu\n", tensor->view_offs);
-
-    // If the tensor has data, print the first few elements (assuming it's a
-    // float tensor)
-    if (tensor->data && tensor->type == type) {
-        printf("First few elements:\n");
-        float* data_f32 = (float*) tensor->data;
-        for (int i = 0; i < GGML_MAX_SRC && i < tensor->ne[0]; ++i) {
-            printf("%f ", data_f32[i]);
-        }
-        printf("\n");
-    }
-
-    printf("----\n");
-}
 
 int main() {
     // Initialize the ggml context with a predefined memory size

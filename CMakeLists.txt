@@ -7,8 +7,8 @@ project(nn VERSION 0.0.1)
 add_subdirectory(ggml)
 
 # Define the main executable
-add_executable(model model.cpp)
-add_executable(xor xor.cpp)
+add_executable(model nn.cpp model.cpp)
+add_executable(xor nn.cpp xor.cpp)
 
 # Link the ggml library
 target_link_libraries(model PUBLIC ggml)
