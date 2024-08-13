@@ -38,7 +38,7 @@ void verify_tensor_creation(
 }
 
 // print related tools
-void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type) {
+void print_tensor_info(struct ggml_tensor* tensor) {
     if (!tensor) {
         fprintf(stderr, "Tensor is NULL\n");
         return;
@@ -48,13 +48,13 @@ void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type) {
     printf("Name: %s\n", tensor->name);
     printf("Type: %d\n", tensor->type);
     printf("Dimensions: ");
-    for (int i = 0; i < GGML_MAX_DIMS; ++i) {
+    for (int i = 0; i < GGML_MAX_DIMS && tensor->ne[i] > 0; ++i) {
         printf("%lld ", tensor->ne[i]);
     }
     printf("\n");
 
     printf("Strides: ");
-    for (int i = 0; i < GGML_MAX_DIMS; ++i) {
+    for (int i = 0; i < GGML_MAX_DIMS && tensor->nb[i] > 0; ++i) {
         printf("%zu ", tensor->nb[i]);
     }
     printf("\n");
@@ -63,15 +63,24 @@ void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type) {
     printf("View Source: %p\n", tensor->view_src);
     printf("View Offset: %zu\n", tensor->view_offs);
 
-    // If the tensor has data, print the first few elements (assuming it's a
-    // float tensor)
-    if (tensor->data && tensor->type == type) {
+    if (tensor->data) {
         printf("First few elements:\n");
-        float* data_f32 = (float*) tensor->data;
-        for (int i = 0; i < GGML_MAX_SRC && i < tensor->ne[0]; ++i) {
-            printf("%f ", data_f32[i]);
+        switch (tensor->type) {
+            case GGML_TYPE_F32:
+                {
+                    float* data_f32  = (float*) tensor->data;
+                    int num_elements = tensor->ne[0]; // Consider total elements
+                    for (int i = 0; i < num_elements && i < 10; ++i) {
+                        printf("%f ", data_f32[i]);
+                    }
+                    printf("\n");
+                    break;
+                }
+            // Handle other types similarly...
+            default:
+                printf("Unsupported tensor data type\n");
+                break;
         }
-        printf("\n");
     }
 
     printf("----\n");

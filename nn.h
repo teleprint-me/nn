@@ -15,6 +15,6 @@ void verify_tensor_creation(
 );
 
 // print related tools
-void print_tensor_info(struct ggml_tensor* tensor, enum ggml_type type);
+void print_tensor_info(struct ggml_tensor* tensor);
 
 #endif // NN_H
