@@ -43,6 +43,38 @@ struct xor_model {
     struct xor_layer hidden_layer;    // Weights and biases for hidden to output
 };
 
+void init_xor_input_layers(xor_model* model) {
+    // the models neurons will have 2 inputs and 1 ouput
+    model->input_layer.weights = ggml_new_tensor_2d(
+        model->ctx,
+        GGML_TYPE_F32,
+        model->hparams.n_hidden,
+        model->hparams.n_input
+    );
+    ggml_set_name(model->input_layer.weights, "xor.input_layer.weights");
+
+    model->input_layer.biases = ggml_new_tensor_2d(
+        model->ctx, GGML_TYPE_F32, model->hparams.n_hidden, 1
+    );
+    ggml_set_name(model->input_layer.biases, "xor.input_layer.biases");
+}
+
+void init_xor_hidden_layers(xor_model* model) {
+    // route the outputs to the hidden neurons
+    model->hidden_layer.weights = ggml_new_tensor_2d(
+        model->ctx,
+        GGML_TYPE_F32,
+        model->hparams.n_output,
+        model->hparams.n_hidden
+    );
+    ggml_set_name(model->hidden_layer.weights, "xor.hidden_layer.weights");
+
+    model->hidden_layer.biases = ggml_new_tensor_2d(
+        model->ctx, GGML_TYPE_F32, model->hparams.n_output, 1
+    );
+    ggml_set_name(model->hidden_layer.biases, "xor.hidden_layer.biases");
+}
+
 xor_model init_xor_model(void) {
     // we allocate to the stack for simplicity, though we could manually
     // allocate memory if we chose to. GGML does not have anything builtin to
@@ -54,30 +86,8 @@ xor_model init_xor_model(void) {
         = {.mem_size = 16 * 1024 * 1024, .mem_buffer = NULL, .no_alloc = false};
 
     model.ctx = ggml_init(params);
-
-    // initialize the input layers
-    // the models neurons will have 2 inputs and 1 ouput
-    model.input_layer.weights = ggml_new_tensor_2d(
-        model.ctx, GGML_TYPE_F32, model.hparams.n_hidden, model.hparams.n_input
-    );
-    ggml_set_name(model.input_layer.weights, "xor.input_layer.weights");
-
-    model.input_layer.biases = ggml_new_tensor_2d(
-        model.ctx, GGML_TYPE_F32, model.hparams.n_hidden, 1
-    );
-    ggml_set_name(model.input_layer.biases, "xor.input_layer.biases");
-
-    // initialize the hidden layers
-    // route the outputs to the hidden neurons
-    model.hidden_layer.weights = ggml_new_tensor_2d(
-        model.ctx, GGML_TYPE_F32, model.hparams.n_output, model.hparams.n_hidden
-    );
-    ggml_set_name(model.hidden_layer.weights, "xor.hidden_layer.weights");
-
-    model.hidden_layer.biases = ggml_new_tensor_2d(
-        model.ctx, GGML_TYPE_F32, model.hparams.n_output, 1
-    );
-    ggml_set_name(model.hidden_layer.biases, "xor.hidden_layer.biases");
+    init_xor_input_layers(&model);
+    init_xor_hidden_layers(&model);
 
     return model;
 }
@@ -121,6 +131,7 @@ int main(void) {
     // 3. Create an input tensor and copy the data
     ggml_tensor* input
         = ggml_new_tensor_2d(model.ctx, GGML_TYPE_F32, cols, rows);
+    ggml_set_name(input, "xor.input");
     // using memcpy is fine here, though we can use our custom
     // set_tensor_data_f32 function as well
     memcpy(input->data, input_data, sizeof(input_data));
