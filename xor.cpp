@@ -75,12 +75,9 @@ void init_xor_hidden_layers(xor_model* model) {
     ggml_set_name(model->hidden_layer.biases, "xor.hidden_layer.biases");
 }
 
-xor_model init_xor_model(void) {
-    // we allocate to the stack for simplicity, though we could manually
-    // allocate memory if we chose to. GGML does not have anything builtin to
-    // handle this allocation, so we would be responsible for its management,
-    // hence why we opt for the stack instead
-    xor_model model;
+struct xor_model init_xor_model(void) {
+    // we allocate to the stack for simplicity
+    struct xor_model model;
 
     ggml_init_params params
         = {.mem_size = 16 * 1024 * 1024, .mem_buffer = NULL, .no_alloc = false};
@@ -117,65 +114,59 @@ void set_tensor_data_f32(
 }
 
 int main(void) {
-    // 1. Initialization
+    // Initialization
     xor_model model = init_xor_model();
     he_initialization(model.input_layer.weights, model.hparams.n_input);
     he_initialization(model.hidden_layer.weights, model.hparams.n_hidden);
 
-    // 2. Define the XOR inputs
-    int64_t rows             = 4;
-    int64_t cols             = 2;
-    // i forgot to update this variable name like a dimwit
-    float   input_data[4][2] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    // Define the XOR inputs
+    int64_t rows                   = 4;
+    int64_t cols                   = 2;
+    float   input_data[rows][cols] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
-    // 3. Create an input tensor and copy the data
+    // Create an input tensor and copy the data
     ggml_tensor* input
-        = ggml_new_tensor_2d(model.ctx, GGML_TYPE_F32, cols, rows);
-    ggml_set_name(input, "xor.input");
-    // using memcpy is fine here, though we can use our custom
-    // set_tensor_data_f32 function as well
+        = ggml_new_tensor_2d(model.ctx, GGML_TYPE_F32, rows, cols);
+    // name the tensor for identification
+    ggml_set_name(input, "xor.input_tensor.data");
+    // add input data to the tensor
     memcpy(input->data, input_data, sizeof(input_data));
 
-    // 4. Forward pass - Input layer: (input * weights) + biases
+    // Check shapes before multiplication
+    printf("Input shape: %lldx%lld\n", cols, rows);
+    printf(
+        "Weights shape: %lldx%lld\n",
+        model.input_layer.weights->ne[0],
+        model.input_layer.weights->ne[1]
+    );
+
+    // Forward pass
     ggml_tensor* input_mul_weights
         = ggml_mul_mat(model.ctx, model.input_layer.weights, input);
     ggml_tensor* hidden
         = ggml_add(model.ctx, input_mul_weights, model.input_layer.biases);
 
-    // 5. Apply ReLU activation
+    // Apply ReLU activation
     hidden = ggml_relu(model.ctx, hidden);
 
-    // 6. Hidden layer: (hidden * weights) + biases
+    // Hidden layer
     ggml_tensor* hidden_mul_weights
         = ggml_mul_mat(model.ctx, model.hidden_layer.weights, hidden);
     ggml_tensor* output
         = ggml_add(model.ctx, hidden_mul_weights, model.hidden_layer.biases);
 
-    // At this point, `output` contains the results of the forward pass.
-    // Output the final results to verify correctness.
-
-    // we have to create a computation graph
+    // Build and compute the forward graph
     struct ggml_cgraph* gf = ggml_new_graph(model.ctx);
-    // Build the forward computation graph
-    // note that there is no ggml_build_forward function defined
-    // ggml_build_forward_expand is a wrapper around ggml_build_forward_impl
-    // ggml_build_forward_impl is pretty straightforward
     ggml_build_forward_expand(gf, output);
+    ggml_graph_compute_with_ctx(model.ctx, gf, 8);
 
-    // For now, let's just print the output tensor data
-    // there is a ggml_graph_compute, but we use ggml_graph_compute_with_ctx
-    // because it implements a context plan (struct ggml_cplan * cplan) for us
-    // which is required by the backend. This is quite involved and we can
-    // revisit this in another example in the future. We will use
-    // ggml_graph_compute_with_ctx for the sake of simplicity
-    ggml_graph_compute_with_ctx(model.ctx, gf, 8); // Compute the graph
-    // we already created a helper function for this, but this is fine for now
+    // Print output
     float* output_data = (float*) output->data;
     for (int i = 0; i < 4; ++i) {
         printf("Output %d: %f\n", i, output_data[i]);
     }
 
-    // Cleanup GGML context
+    // Cleanup
     ggml_free(model.ctx);
 
     return 0;
