@@ -167,5 +167,6 @@
     "stddef.h": "c",
     "strstream": "cpp",
     "source_location": "cpp"
-  }
+  },
+  "cSpell.words": ["nelements"]
 }
