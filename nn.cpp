@@ -60,16 +60,17 @@ void print_tensor_info(struct ggml_tensor* tensor, int64_t max_elements) {
     printf("View Offset: %zu\n", tensor->view_offs);
 
     if (tensor->data) {
-        if (0 > max_elements) {
-            max_elements = 10;
+        int64_t num_elements = ggml_nelements(tensor);
+        if (1 > max_elements) {
+            max_elements = num_elements;
         }
-
+        printf("Num elements: %i\n", num_elements);
         printf("Max elements: %i\n", max_elements);
+
         switch (tensor->type) {
             case GGML_TYPE_F32:
                 {
-                    float*  data_f32     = (float*) tensor->data;
-                    int64_t num_elements = tensor->ne[0]; // Consider total elements
+                    float* data_f32 = (float*) tensor->data;
                     for (int64_t i = 0; i < num_elements && i < max_elements; ++i) {
                         printf("%f ", data_f32[i]);
                     }
@@ -78,8 +79,7 @@ void print_tensor_info(struct ggml_tensor* tensor, int64_t max_elements) {
                 }
             case GGML_TYPE_F16:
                 {
-                    uint16_t* data_f16     = (uint16_t*) tensor->data;
-                    int64_t   num_elements = tensor->ne[0];
+                    uint16_t* data_f16 = (uint16_t*) tensor->data;
                     for (int64_t i = 0; i < num_elements && i < max_elements; ++i) {
                         float data_f32 = ggml_fp16_to_fp32(data_f16[i]);
                         printf("%f ", data_f32);
