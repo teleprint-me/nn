@@ -74,6 +74,7 @@
   },
   "files.associations": {
     "*.tcss": "jinja-css",
+    "*.h": "c",
     "iostream": "cpp",
     "cstdlib": "cpp",
     "stdexcept": "cpp",
@@ -163,6 +164,8 @@
     "stdbool.h": "c",
     "sdl_render.h": "c",
     "vector.h": "c",
-    "stddef.h": "c"
+    "stddef.h": "c",
+    "strstream": "cpp",
+    "source_location": "cpp"
   }
 }
