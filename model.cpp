@@ -39,8 +39,8 @@ int main() {
     ggml_set_f32(b, 1.0f); // Initialize elements in b to 1.0f
 
     // Print initialized tensors
-    print_tensor_info(a);
-    print_tensor_info(b);
+    print_tensor_info(a, -1);
+    print_tensor_info(b, -1);
 
     // Define operations for each node within the computation graph
     // x = a * b
@@ -59,8 +59,8 @@ int main() {
     ggml_graph_compute_with_ctx(ctx, gf, 8); // Using 8 threads
 
     // Print the output tensor after computation
-    print_tensor_info(x); // --> 2.0f
-    print_tensor_info(f); // --> 5.0f
+    print_tensor_info(x, x->ne[0]); // --> 2.0f
+    print_tensor_info(f, f->ne[0]); // --> 5.0f
 
     // Clean up
     ggml_free(ctx);
