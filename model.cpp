@@ -24,8 +24,8 @@ int main() {
     }
 
     // Define tensor dimensions
-    int64_t ne0 = 3; // number of elements within a row
-    int64_t ne1 = 4; // number of elements within a column
+    int64_t ne0 = 2; // number of elements within a row
+    int64_t ne1 = 3; // number of elements within a column
 
     // Define the tensors to be used within the computation graph
     struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, ne0, ne1);
