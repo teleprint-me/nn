@@ -46,7 +46,8 @@ void print_tensor_info(struct ggml_tensor* tensor) {
 
     printf("Tensor Info:\n");
     printf("Name: %s\n", tensor->name);
-    printf("Type: %d\n", tensor->type);
+    printf("Type: %zu -> %s\n", tensor->type, ggml_type_name(tensor->type));
+
     printf("Dimensions: ");
     for (int i = 0; i < GGML_MAX_DIMS && tensor->ne[i] > 0; ++i) {
         printf("%lld ", tensor->ne[i]);
