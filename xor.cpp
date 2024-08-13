@@ -152,6 +152,7 @@ int main(void) {
     // Hidden layer
     ggml_tensor* hidden_mul_weights
         = ggml_mul_mat(model.ctx, model.hidden_layer.weights, hidden);
+    // output should be 4x1
     ggml_tensor* output
         = ggml_add(model.ctx, hidden_mul_weights, model.hidden_layer.biases);
 
