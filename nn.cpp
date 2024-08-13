@@ -77,6 +77,17 @@ void print_tensor_info(struct ggml_tensor* tensor) {
                     printf("\n");
                     break;
                 }
+            case GGML_TYPE_F16:
+                {
+                    uint16_t* data_f16     = (uint16_t*) tensor->data;
+                    int       num_elements = tensor->ne[0];
+                    for (int i = 0; i < num_elements && i < 10; ++i) {
+                        float data_f32 = ggml_fp16_to_fp32(data_f16[i]);
+                        printf("%f ", data_f32);
+                    }
+                    printf("\n");
+                    break;
+                }
             // Handle other types similarly...
             default:
                 printf("Unsupported tensor data type\n");
