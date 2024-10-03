@@ -18,7 +18,10 @@ def list_key_value_pairs(reader: GGUFReader) -> None:
     max_key_length = max(len(key) for key in reader.fields.keys())
     for key, field in reader.fields.items():
         value = field.parts[field.data[0]]
-        print(f"{key:{max_key_length}} : {value}")
+        if key.startswith("general."):
+            print(f"{key:{max_key_length}} : {''.join(chr(v) for v in value)}")
+        else:
+            print(f"{key:{max_key_length}} : {value}")
     print("---")
 
 
