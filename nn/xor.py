@@ -3,6 +3,7 @@ Script: xor
 """
 
 import argparse
+import os
 
 import gguf
 import numpy as np
@@ -63,11 +64,18 @@ def train() -> XORModel:
 
 
 def export(model, model_path):
-    # Assuming `model_path` is defined somewhere (where you want to save the model)
-    gguf_writer = gguf.GGUFWriter(model_path, "xor-model")
+    # Create directory if it doesn't exist
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    model_file = os.path.join(
+        model_path, "xor-model.gguf"
+    )  # Define the full file path for the model
+
+    gguf_writer = gguf.GGUFWriter(model_file, "xor-model")
 
     print()
-    print(f"Model tensors saved to {model_path}:")
+    print(f"Model tensors saved to {model_file}:")
     for tensor_name in model.state_dict().keys():
         data = model.state_dict()[tensor_name].squeeze().cpu().numpy()
         print(tensor_name, "\t", data.shape)
