@@ -41,3 +41,11 @@ For the XOR model, you'll primarily need the following operations, which are typ
 7. **Tensor Creation**:
    - **Operation**: Create tensors for input, weights, biases, and output.
    - **GGML Equivalent**: `ggml_new_tensor_2d` or other appropriate functions for tensor creation.
+
+## 2. The XOR Problem
+
+The XOR problem is a simple boolean logic function that takes two binary inputs (0 or 1) and outputs the exclusive OR of those values:
+
+XOR(A, B) = A ⊕ B
+
+This problem serves as an example for creating a basic neural network model to solve this logical operation using matrix multiplication, addition, activation functions, loss calculation, backpropagation (gradient descent), and tensor creation.
