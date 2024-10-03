@@ -2,7 +2,7 @@
 Script: read
 """
 
-#!/usr/bin/env python3
+import argparse
 import logging
 import sys
 from pathlib import Path
@@ -11,16 +11,22 @@ from gguf.gguf_reader import GGUFReader
 
 logger = logging.getLogger("reader")
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
-def read_gguf_file(gguf_file_path):
+def read_gguf_file(gguf_file_path, verbose):
     """
     Reads and prints key-value pairs and tensor information from a GGUF file in an improved format.
 
     Parameters:
     - gguf_file_path: Path to the GGUF file.
+    - verbose: Whether to enable detailed logging.
     """
+
+    if verbose:
+        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+        logging.basicConfig(level=logging.INFO)
 
     reader = GGUFReader(gguf_file_path)
 
@@ -46,9 +52,21 @@ def read_gguf_file(gguf_file_path):
         )  # noqa: NP100
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        logger.info("Usage: reader.py <path_to_gguf_file>")
+def main():
+    parser = argparse.ArgumentParser(description="Read and inspect GGUF model files.")
+    parser.add_argument("model_path", help="Path to the GGUF model file.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output.")
+    args = parser.parse_args()
+
+    # Validate the model path
+    model_path = Path(args.model_path)
+    if not model_path.is_file():
+        logger.error(f"The specified model path {model_path} does not exist or is not a file.")
         sys.exit(1)
-    gguf_file_path = sys.argv[1]
-    read_gguf_file(gguf_file_path)
+
+    # Read and inspect the GGUF file
+    read_gguf_file(model_path, args.verbose)
+
+
+if __name__ == "__main__":
+    main()
