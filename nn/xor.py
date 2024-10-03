@@ -32,25 +32,30 @@ class XORModel(nn.Module):
         return x
 
 
-# Instantiate the model, define loss function and optimizer
-model = XORModel()
-criterion = nn.BCELoss()  # Binary cross-entropy loss for binary classification
-optimizer = optim.SGD(model.parameters(), lr=0.1)
+def train():
+    # Instantiate the model, define loss function and optimizer
+    model = XORModel()
+    criterion = nn.BCELoss()  # Binary cross-entropy loss for binary classification
+    optimizer = optim.SGD(model.parameters(), lr=0.1)
 
-# Training loop
-for epoch in range(10000):  # Training for 10,000 epochs
-    optimizer.zero_grad()  # Zero the gradient buffers
-    outputs = model(X)  # Forward pass
-    loss = criterion(outputs, y)  # Compute the loss
-    loss.backward()  # Backward pass
-    optimizer.step()  # Update weights
+    # Training loop
+    for epoch in range(10000):  # Training for 10,000 epochs
+        optimizer.zero_grad()  # Zero the gradient buffers
+        outputs = model(X)  # Forward pass
+        loss = criterion(outputs, y)  # Compute the loss
+        loss.backward()  # Backward pass
+        optimizer.step()  # Update weights
 
-    if (epoch + 1) % 1000 == 0:
-        print(f"Epoch [{epoch+1}/10000], Loss: {loss.item():.4f}")
+        if (epoch + 1) % 1000 == 0:
+            print(f"Epoch [{epoch+1}/10000], Loss: {loss.item():.4f}")
 
-# Test the model
-with torch.no_grad():
-    predicted = model(X)
-    predicted = (predicted > 0.5).float()  # Convert probabilities to binary output
-    print("Predicted:\n", predicted)
-    print("Actual:\n", y)
+    # Test the model
+    with torch.no_grad():
+        predicted = model(X)
+        predicted = (predicted > 0.5).float()  # Convert probabilities to binary output
+        print("Predicted:\n", predicted)
+        print("Actual:\n", y)
+
+
+def main():
+    train()
