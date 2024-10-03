@@ -40,8 +40,11 @@ struct xor_layer {
 struct xor_model {
     struct ggml_context* ctx = NULL;
     struct xor_hparams   hparams;
-    struct xor_layer     input_layer;  // Weights and biases for input to hidden
-    struct xor_layer     hidden_layer; // Weights and biases for hidden to output
+
+    struct xor_layer input_layer;  // Weights and biases for input to hidden
+    struct xor_layer hidden_layer; // Weights and biases for hidden to output
+
+    // std::vector<struct xor_layer> layers;
 };
 
 void init_xor_input_layers(xor_model* model) {
@@ -77,28 +80,32 @@ struct xor_model init_xor_model(void) {
     return model;
 }
 
+ggml_tensor* init_xor_input_tensor(struct xor_model model) {
+    // define xor input data
+    float x[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
+
+    // Create an input tensor and copy the data
+    ggml_tensor* input = ggml_new_tensor_2d(model.ctx, GGML_TYPE_F32, /* rows */ 4, /* cols */ 2);
+    // name the tensor for identification
+    ggml_set_name(input, "xor.input_tensor.data");
+    // add input data to the tensor
+    memcpy(input->data, x, sizeof(x));
+    // output initialized tensor data
+    print_tensor_info(input, /* max_elements */ -1);
+
+    return input;
+}
+
 int main(void) {
     // Initialization
     xor_model model = init_xor_model();
     he_initialization(model.input_layer.weights, model.hparams.n_input);
     he_initialization(model.hidden_layer.weights, model.hparams.n_hidden);
 
-    // Define the XOR inputs
-    int64_t rows                   = 4;
-    int64_t cols                   = 2;
-    float   input_data[rows][cols] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    // float output_label[4][1] = {{0.0f}, {1.0f}, {1.0f}, {0.0f}}; // y
 
     // Create an input tensor and copy the data
-    ggml_tensor* input = ggml_new_tensor_2d(model.ctx, GGML_TYPE_F32, rows, cols);
-    // name the tensor for identification
-    ggml_set_name(input, "xor.input_tensor.data");
-    // add input data to the tensor
-    memcpy(input->data, input_data, sizeof(input_data));
-    print_tensor_info(input, -1);
-
-    // Check shapes before multiplication
-    printf("Input shape: %lldx%lld\n", cols, rows);
-    printf("Weights shape: %lldx%lld\n", model.input_layer.weights->ne[0], model.input_layer.weights->ne[1]);
+    ggml_tensor* input = init_xor_input_tensor(model);
 
     // Forward pass
     ggml_tensor* input_mul_weights = ggml_mul_mat(model.ctx, model.input_layer.weights, input);
