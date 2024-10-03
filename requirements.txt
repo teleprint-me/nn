@@ -1,5 +1,6 @@
-gguf
+numpy
 sentencepiece
+gguf
 torch
 torchvision
 torchaudio
