@@ -86,3 +86,7 @@ def main():
 
     model = train()
     export(model, args.model_path)
+
+
+if __name__ == "__main__":
+    main()
