@@ -72,7 +72,16 @@ def export(model, model_path):
         model_path, "xor-model.gguf"
     )  # Define the full file path for the model
 
-    gguf_writer = gguf.GGUFWriter(model_file, "xor-model")
+    gguf_writer = gguf.GGUFWriter(path=model_file, arch="xor")
+    gguf_writer.add_name("nn")
+    gguf_writer.add_author("gpt")
+    gguf_writer.add_organization("teleprint-me")
+    gguf_writer.add_description(
+        "A simple neural network designed to solve the XOR problem using two fully connected layers. "
+        "This model serves as an example of a basic feedforward network trained to perform binary classification. "
+        "The architecture consists of two input nodes, two hidden nodes with sigmoid activations, and one output node."
+    )
+    gguf_writer.add_license("cc-by-nc-sa-4.0")
 
     print()
     print(f"Model tensors saved to {model_file}:")
