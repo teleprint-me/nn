@@ -1,0 +1,6 @@
+gguf
+sentencepiece
+torch
+torchvision
+torchaudio
+torchtext
