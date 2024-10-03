@@ -2,6 +2,9 @@
 Script: xor
 """
 
+import argparse
+
+import gguf
 import numpy as np
 import torch
 import torch.nn as nn
@@ -32,7 +35,7 @@ class XORModel(nn.Module):
         return x
 
 
-def train():
+def train() -> XORModel:
     # Instantiate the model, define loss function and optimizer
     model = XORModel()
     criterion = nn.BCELoss()  # Binary cross-entropy loss for binary classification
@@ -56,6 +59,30 @@ def train():
         print("Predicted:\n", predicted)
         print("Actual:\n", y)
 
+    return model
+
+
+def export(model, model_path):
+    # Assuming `model_path` is defined somewhere (where you want to save the model)
+    gguf_writer = gguf.GGUFWriter(model_path, "xor-model")
+
+    print()
+    print(f"Model tensors saved to {model_path}:")
+    for tensor_name in model.state_dict().keys():
+        data = model.state_dict()[tensor_name].squeeze().cpu().numpy()
+        print(tensor_name, "\t", data.shape)
+        gguf_writer.add_tensor(tensor_name, data)
+
+    gguf_writer.write_header_to_file()
+    gguf_writer.write_kv_data_to_file()
+    gguf_writer.write_tensors_to_file()
+    gguf_writer.close()
+
 
 def main():
-    train()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model-path", help="Model path", default="models")
+    args = parser.parse_args()
+
+    model = train()
+    export(model, args.model_path)
