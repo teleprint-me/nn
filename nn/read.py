@@ -19,15 +19,14 @@ def list_key_value_pairs(reader: GGUFReader) -> None:
     for key, field in reader.fields.items():
         value = field.parts[field.data[0]]
         print(f"{key:{max_key_length}} : {value}")
-    print("----")
+    print("---")
 
 
 def list_tensors(reader: GGUFReader) -> None:
     """List all tensors with shape, size, and quantization info."""
-    print("Tensors:")
     tensor_info_format = "{:<30} | Shape: {:<15} | Size: {:<12} | Quantization: {}"
     print(tensor_info_format.format("Tensor Name", "Shape", "Size", "Quantization"))
-    print("-" * 80)
+    print("---")
     for tensor in reader.tensors:
         shape_str = "x".join(map(str, tensor.shape))
         size_str = str(tensor.n_elements)
