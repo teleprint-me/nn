@@ -26,4 +26,9 @@ xy_avg = sum(xy) / n
 m_hat = (xy_avg - x_avg * y_avg) / (x_squared_avg - x_avg**2)
 b_hat = y_avg - m_hat * x_avg
 
-m_hat, b_hat
+print(m_hat, b_hat)
+
+# Compute predicted pizza sales for each income
+predicted_sales = [m_hat * x + b_hat for x in income]
+
+print(predicted_sales)
